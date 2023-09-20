@@ -1,0 +1,4 @@
+{
+    "namespace": "preservationAndDoublingModifier",
+    "setup": "src/setup.mjs"
+}
