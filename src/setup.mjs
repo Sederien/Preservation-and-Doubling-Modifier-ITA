@@ -8,6 +8,14 @@ const ancientRelicDecreaseModifier = 696969;
 const settingsGeneralSection = 'General';
 const settingsAncientRelicsSection = 'Ancient Relics Overrides';
 
+const double = "Double";
+const double_l = "double";
+const preserve = "Preserve";
+const preservation = "Preservation";
+
+let doublingModifiers;
+let preservationModifiers;
+
 let isPreservationPatched = false;
 let isDoublingPatched = false;
 
@@ -71,6 +79,13 @@ function Log(message) {
 
 async function OnCharacterLoaded(ctx) {
     if (game.currentGamemode._localID === 'AncientRelics') {
+        doublingModifiers = game.currentGamemode.disabledModifiers.filter(el => {
+            return el.includes(double) || el.includes(double_l);
+        })
+        preservationModifiers = game.currentGamemode.disabledModifiers.filter(el => {
+            return el.includes(preservation) || el.includes(preserve);
+        })
+
         ctx.settings.section(settingsAncientRelicsSection).add([{
             type: 'switch',
             name: overrideAncientRelicGamemodePreservationModifier,
@@ -164,6 +179,19 @@ function HasPlayerCompletedCurrentlySetDungeon() {
     return HasPlayerCompletedDungeon(CurrentSetDungeonID());
 }
 
+function SetDisabledModifiers(preservation, doubling) {
+    let newArray = [];
+
+    if (!preservation) {
+        newArray = newArray.concat(preservationModifiers);
+    }
+    if (!doubling) {
+        newArray = newArray.concat(doublingModifiers);
+    }
+
+    game.currentGamemode.disabledModifiers = newArray;
+}
+
 function OverridePreservation(preservation, dungeon) {
     const enable = preservation && dungeon;
 
@@ -210,6 +238,8 @@ function OverridePreservation(preservation, dungeon) {
         game.currentGamemode.playerModifiers.decreasedRunePreservation += ancientRelicDecreaseModifier;
         game.currentGamemode.playerModifiers.decreasedSummoningChargePreservation += ancientRelicDecreaseModifier;
     }
+
+    SetDisabledModifiers(enable, isDoublingPatched);
 }
 
 function OverrideDoubling(doubling, dungeon) {
@@ -246,4 +276,6 @@ function OverrideDoubling(doubling, dungeon) {
         game.currentGamemode.playerModifiers.decreasedChanceToDoubleLootCombat += ancientRelicDecreaseModifier;
         game.currentGamemode.playerModifiers.decreasedChanceToDoubleOres += ancientRelicDecreaseModifier;
     }
+
+    SetDisabledModifiers(isPreservationPatched, enable);
 }
