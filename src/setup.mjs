@@ -46,6 +46,32 @@ async function onModsLoaded(ctx) {
         max: 5
     }]);
 
+    ctx.settings.section(settingsAncientRelicsSection).add([{
+        type: 'switch',
+        name: overrideAncientRelicGamemodePreservationModifier,
+        label: 'Override Ancient Relic Preservation Rule',
+        hint: 'If true, enables regular preservation in the Ancient Relic game mode',
+        default: false,
+        onChange: PreservationChangedEvent
+    },
+    {
+        type: 'switch',
+        name: overrideAncientRelicGamemodeDoublingModifier,
+        label: 'Override Ancient Relic Doubling Rule',
+        hint: 'If true, enables regular doubling in the Ancient Relic game mode',
+        default: false,
+        onChange: DoublingChangedEvent
+    },
+    {
+        type: 'dropdown',
+        name: enableAncientRelicOverrideAfterDungeon,
+        label: 'Enable Ancient Relic Override After Dungeon',
+        hint: 'Allows you to choose a dungeon after which the ancient relic overrides are enabled. This allows you to have to work for your preservation and/or doubling',
+        default: 'none',
+        options: GetDungeonOptions(),
+        onChange: DungeonChangedEvent
+    }]);
+
     ctx.patch(Skill, 'getDoublingChance').after(chance => {
         return chance * GetDoublingModifier();
     })
@@ -78,39 +104,13 @@ function Log(message) {
 }
 
 async function OnCharacterLoaded(ctx) {
-    if (game.currentGamemode._localID === 'AncientRelics') {
+    if (IsAncientRelicsGamemode()) {
         doublingModifiers = game.currentGamemode.disabledModifiers.filter(el => {
             return el.includes(double) || el.includes(double_l);
         })
         preservationModifiers = game.currentGamemode.disabledModifiers.filter(el => {
             return el.includes(preservation) || el.includes(preserve);
         })
-
-        ctx.settings.section(settingsAncientRelicsSection).add([{
-            type: 'switch',
-            name: overrideAncientRelicGamemodePreservationModifier,
-            label: 'Override Ancient Relic Preservation Rule',
-            hint: 'If true, enables regular preservation in the Ancient Relic game mode',
-            default: false,
-            onChange: PreservationChangedEvent
-        },
-        {
-            type: 'switch',
-            name: overrideAncientRelicGamemodeDoublingModifier,
-            label: 'Override Ancient Relic Doubling Rule',
-            hint: 'If true, enables regular doubling in the Ancient Relic game mode',
-            default: false,
-            onChange: DoublingChangedEvent
-        },
-        {
-            type: 'dropdown',
-            name: enableAncientRelicOverrideAfterDungeon,
-            label: 'Enable Ancient Relic Override After Dungeon',
-            hint: 'Allows you to choose a dungeon after which the ancient relic overrides are enabled. This allows you to have to work for your preservation and/or doubling',
-            default: 'none',
-            options: GetDungeonOptions(),
-            onChange: DungeonChangedEvent
-        }]);
 
         ctx.patch(CombatManager, 'addDungeonCompletion').after(dungeon => {
             OverridePreservation(CurrentSetPreservationOverride(), HasPlayerCompletedCurrentlySetDungeon());
@@ -120,6 +120,10 @@ async function OnCharacterLoaded(ctx) {
         OverridePreservation(CurrentSetPreservationOverride(), HasPlayerCompletedCurrentlySetDungeon());
         OverrideDoubling(CurrentSetDoublingOverride(), HasPlayerCompletedCurrentlySetDungeon());
     }
+}
+
+function IsAncientRelicsGamemode() {
+    return game.currentGamemode._localID === 'AncientRelics';
 }
 
 function GetDoublingModifier() {
@@ -193,6 +197,10 @@ function SetDisabledModifiers(preservation, doubling) {
 }
 
 function OverridePreservation(preservation, dungeon) {
+    if (!IsAncientRelicsGamemode()) {
+        return;
+    }
+
     const enable = preservation && dungeon;
 
     if (enable === isPreservationPatched) {
@@ -243,6 +251,10 @@ function OverridePreservation(preservation, dungeon) {
 }
 
 function OverrideDoubling(doubling, dungeon) {
+    if (!IsAncientRelicsGamemode()) {
+        return;
+    }
+
     const enable = doubling && dungeon;
 
     if (enable == isDoublingPatched) {
