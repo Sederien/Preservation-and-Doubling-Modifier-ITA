@@ -73,11 +73,13 @@ async function onModsLoaded(ctx) {
     }]);
 
     ctx.patch(Skill, 'getDoublingChance').after(chance => {
-        return chance * GetDoublingModifier();
+        const value = chance * GetDoublingModifier();
+        return Math.min(Math.max(value, 0), 100);
     })
 
     ctx.patch(Skill, 'getPreservationChance').after(chance => {
-        return chance * GetPreservationModifier();
+        const value = chance * GetPreservationModifier();
+        return Math.min(Math.max(value, 0), 80);
     })
 }
 
