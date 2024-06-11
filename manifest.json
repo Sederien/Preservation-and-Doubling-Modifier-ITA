@@ -1,4 +1,4 @@
 {
-    "namespace": "preservationAndDoublingModifier",
+    "namespace": "SimplePreservationAndDoubling",
     "setup": "src/setup.mjs"
 }
